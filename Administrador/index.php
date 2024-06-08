@@ -1,3 +1,34 @@
+<?php
+// Iniciar sesión si aún no se ha iniciado
+session_start();
+
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['user'])) {
+    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
+    header('Location: index.php');
+    exit;
+}
+
+// Acceder a la variable de sesión del nombre de usuario
+$usuario = $_SESSION['user'];
+
+// Acceder a la variable de sesión del ID de usuario
+$userID = $_SESSION['user_id'];
+
+// Comprobar si se ha hecho clic en el botón "Volver"
+if (isset($_POST['logout'])) {
+    // Destruir todas las variables de sesión
+    session_unset();
+    // Destruir la sesión
+    session_destroy();
+    // Redirigir al usuario de vuelta al inicio de sesión
+    header('Location: ../Login/index.php');
+    exit;
+}
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,8 +51,13 @@
   </a>
   <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
       
-      <a href="../Login/index.php"><button type="button"  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cerrar session</button></a>
       
+<form method="post">
+<button type="submit" name="logout" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cerrar session</button>
+
+</form>
+
+
       <button data-collapse-toggle="navbar-sticky" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-sticky" aria-expanded="false">
         <span class="sr-only">Open main menu</span>
         <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
@@ -57,7 +93,7 @@
 <div class="flex justify-center items-center mt-20">
     
 
-<h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Whojak</span> Administrador </h1>
+<h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400"><?php echo $usuario; ?></span> Administrador </h1>
 
 </div>
 

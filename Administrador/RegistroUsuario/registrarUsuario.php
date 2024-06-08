@@ -63,11 +63,6 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
 
 
 
-
-
-
-
-
     // Encriptar la contraseña
     $contrasena_encriptada = encriptar_contrasena($contrasena);
 
@@ -269,7 +264,7 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+ document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
     const nombre = document.getElementById('nombre');
     const apellido = document.getElementById('apellido');
