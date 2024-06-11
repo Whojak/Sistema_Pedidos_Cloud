@@ -35,7 +35,7 @@ function verificar_usuario_existente($service, $spreadsheetId, $usuario) {
     return false;
 }
 
-// Verificar si se ha enviado el formulario 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];

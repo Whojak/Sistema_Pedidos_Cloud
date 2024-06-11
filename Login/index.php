@@ -33,40 +33,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isAuthenticated = false;
 
     foreach ($values as $row) {
-        $username = $row[5]; // Suponiendo que la columna 6 (índice 5) contiene el nombre de usuario
-        $userPassword = $row[6]; // Suponiendo que la columna 7 (índice 6) contiene la contraseña encriptada
-        $userRole = $row[9]; // Suponiendo que la columna 10 (índice 9) contiene el rol del usuario
-        $estado = $row[10]; // Suponiendo que la columna 12 (índice 11) contiene el estado del usuario
+        $username = $row[5]; 
+        $userPassword = $row[6]; 
+        $userRole = $row[9]; 
+        $estado = $row[10]; 
 
         // Comparar el nombre de usuario y verificar la contraseña encriptada
         if ($username === $inputUsername && password_verify($inputPassword, $userPassword)) {
-            // Verificar el estado del usuario
-            if ($estado === 'activo') {
+            
+            if ($estado === 'activo' || $estado === 'Activo' ) {
                 $isAuthenticated = true;
                 $_SESSION['user'] = $username;
                 $_SESSION['role'] = $userRole;
                 $_SESSION['user_id'] = $row[0];
 
                 // Redirigir según el rol del usuario
-                if ($userRole === 'cliente') {
+                if ($userRole === 'cliente' || $userRole === 'cliente') {
                     header('Location: ../Cliente/index.php');
                     exit;
-                } elseif ($userRole === 'administrador') {
+                } elseif ($userRole === 'administrador' || $userRole === 'administrador') {
                     header('Location: ../Administrador/index.php');
                     exit;
-                } elseif ($userRole === 'repartidor') {
+                } elseif ($userRole === 'repartidor' || $userRole === 'repartidor') {
                     header('Location: ../Repartidor/index.php');
                     exit;
                 }
             } else {
-                // Si el usuario está inactivo, mostrar un mensaje de error
+                
                 $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
             }
         }
     }
 
     if (!$isAuthenticated && !isset($error)) {
-        // Si las credenciales no coinciden, mostrar un mensaje de error
+  
         $error = "Usuario o contraseña incorrectos.";
     }
 }

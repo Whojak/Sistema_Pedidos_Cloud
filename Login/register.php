@@ -35,7 +35,7 @@ function verificar_usuario_existente($service, $spreadsheetId, $usuario) {
     return false;
 }
 
-// Verificar si se ha enviado el formulario 
+ 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];
@@ -65,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Encriptar la contraseña
     $contrasena_encriptada = encriptar_contrasena($contrasena);
 
-    // Asignar el código de usuario según el tipo de usuario
+    
     if ($tipo_usuario === 'cliente') {
         $random_number = rand(100, 999);
         $codigo_usuario = 'CLI' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
     }
 
-    // Obtener el último ID de la hoja de Google
+    
     $range = 'Usuarios!A:A';
     $response = $service->spreadsheets_values->get($spreadsheetId, $range);
     $values = $response->getValues();
@@ -94,12 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]],
     ]);
 
-    // Configurar los parámetros de inserción
+    // Configurar los parámetros
     $params = [
         'valueInputOption' => 'RAW',
     ];
 
-    // Insertar los datos en Google Sheets
+    
     try {
         $result = $service->spreadsheets_values->append($spreadsheetId, 'Usuarios!A:L', $insertData, $params);
         if ($result->getUpdates()->getUpdatedCells() > 0) {
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                    <!-- Alerta-->
                 <div id="alert-container"></div>
-                
+
                 <div class="flex justify-center items-center mt-8">
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Registrar nueva cuenta</button>
                 </div>

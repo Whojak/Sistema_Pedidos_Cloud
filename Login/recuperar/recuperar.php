@@ -1,4 +1,3 @@
-
 <?php
 require_once '../../vendor/autoload.php';
 
@@ -26,48 +25,58 @@ $range = 'Usuarios!A2:L';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
+// Función para generar un token aleatorio
+function generarToken() {
+    return 'T' . str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+}
 
-// Verificar si se envió el formulario para despedir al usuario
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
-    // Obtener el ID del usuario a despedir
-    $id = $_POST['id'];
-    // Definir el estado "Inactivo"
-    $estado_inactivo = "Inactivo";
+// Verificar si se envió el formulario de inicio de sesión
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['email'])) {
+    $inputUsername = $_POST['username'];
+    $inputEmail = $_POST['email'];
 
-    // Configurar el cliente de Google
-    $client = new \Google_Client();
-    $client->setApplicationName('GestorPedidos');
-    $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-    $client->setAccessType('offline');
+    $isAuthenticated = false;
 
-    // El archivo credentials.json
-    $path = '../../data/credentials.json';
-    $client->setAuthConfig($path);
+    foreach ($values as $index => $row) {
+        $username = $row[5]; 
+        $userEmail = $row[8]; 
+        $userRole = $row[9]; 
+        $estado = $row[10]; 
+        $token = $row[11];
 
-    // Configurar el servicio de Google Sheets
-    $service = new \Google_Service_Sheets($client);
+        if ($username === $inputUsername && $userEmail === $inputEmail) {
+            if ($estado === 'activo' || $estado === 'Activo') {
+                $isAuthenticated = true;
+                $_SESSION['user'] = $username;
+                $_SESSION['role'] = $userRole;
+                $_SESSION['user_id'] = $row[0];
 
-    $spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
+                // Generar un nuevo token
+                $newToken = generarToken();
 
-    // Definir el rango de celda para actualizar el estado del usuario
-    $range = 'Usuarios!K' . ($id + 1);
+                // Actualizar el token en Google Sheets
+                $updateRange = 'Usuarios!L' . ($index + 2);
+                $updateBody = new \Google_Service_Sheets_ValueRange([
+                    'values' => [[ $newToken ]]
+                ]);
+                $params = ['valueInputOption' => 'RAW'];
+                $service->spreadsheets_values->update($spreadsheetId, $updateRange, $updateBody, $params);
 
-    // Crear los datos para actualizar el estado a "Inactivo"
-    $data = new \Google_Service_Sheets_ValueRange([
-        'values' => [[$estado_inactivo]]
-    ]);
+                // Almacenar el token en la sesión
+                $_SESSION['token'] = $newToken;
 
-    // Configurar los parámetros de actualización
-    $params = [
-        'valueInputOption' => 'RAW'
-    ];
+             
+                header('Location: validarToken.php');
+                exit;
+            } else {
+                $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
+            }
+        }
+    }
 
-    // Realizar la actualización del estado del usuario en Google Sheets
-    $service->spreadsheets_values->update($spreadsheetId, $range, $data, $params);
-    
-    // Redireccionar de vuelta a la página de ver usuarios
-    header('Location: VerUsuario.php');
-    exit;
+    if (!$isAuthenticated && !isset($error)) {
+        $error = "Usuario o correo electrónico incorrectos.";
+    }
 }
 ?>
 
@@ -101,11 +110,15 @@ background-image: linear-gradient(305deg, rgba(254, 254, 254,0.02) 0%, rgba(254,
   
 
 <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
-    <form class="space-y-6" action="validarToken.php">
+    <form class="space-y-6" method="POST" action="">
         <h5 class="text-xl font-medium text-gray-900 dark:text-white">Ingresa los siguientes datos</h5>
         <div>
-            <label for="user" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Usuario</label>
-            <input type="text" name="user" id="user" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="user123" required />
+            <?php if (isset($error)): ?>
+                    <div class="text-red-500 text-sm"><?= $error ?></div>
+                <?php endif; ?>
+
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Usuario</label>
+            <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="user123" required />
         </div>
         <div>
             <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Correo electronico</label>
