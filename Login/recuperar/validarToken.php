@@ -1,9 +1,14 @@
-
 <?php
 require_once '../../vendor/autoload.php';
 
 // Iniciar sesión
 session_start();
+
+// Acceder a la variable de sesión del nombre de usuario
+$usuario = $_SESSION['user'];
+
+// Acceder a la variable de sesión del ID de usuario
+$userID = $_SESSION['user_id'];
 
 // Configurar el cliente de Google
 $client = new \Google_Client();
@@ -26,50 +31,42 @@ $range = 'Usuarios!A2:L';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
+// Verificar si se envió el formulario de inicio de sesión
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'])) {
+    $inputToken = $_POST['token'];
 
-// Verificar si se envió el formulario para despedir al usuario
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
-    // Obtener el ID del usuario a despedir
-    $id = $_POST['id'];
-    // Definir el estado "Inactivo"
-    $estado_inactivo = "Inactivo";
+    // Variable para almacenar si la autenticación fue exitosa
+    $isAuthenticated = false;
 
-    // Configurar el cliente de Google
-    $client = new \Google_Client();
-    $client->setApplicationName('GestorPedidos');
-    $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-    $client->setAccessType('offline');
+    // Verificar si se obtuvieron los valores correctamente
+    if ($values) {
+        foreach ($values as $index => $row) {
+            $token = $row[11]; // Obtener el token de la fila
 
-    // El archivo credentials.json
-    $path = '../../data/credentials.json';
-    $client->setAuthConfig($path);
+            // Comparar el token ingresado por el usuario con el token de la fila actual
+            if ($token === $inputToken) {
+                $isAuthenticated = true;
+                break; // Salir del bucle una vez que se encuentre una coincidencia
+            }
+        }
+    } else {
+        // Si no se obtuvieron los valores, mostrar un mensaje de error
+        echo "Error al obtener los datos de la hoja de cálculo.";
+    }
 
-    // Configurar el servicio de Google Sheets
-    $service = new \Google_Service_Sheets($client);
-
-    $spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
-
-    // Definir el rango de celda para actualizar el estado del usuario
-    $range = 'Usuarios!K' . ($id + 1);
-
-    // Crear los datos para actualizar el estado a "Inactivo"
-    $data = new \Google_Service_Sheets_ValueRange([
-        'values' => [[$estado_inactivo]]
-    ]);
-
-    // Configurar los parámetros de actualización
-    $params = [
-        'valueInputOption' => 'RAW'
-    ];
-
-    // Realizar la actualización del estado del usuario en Google Sheets
-    $service->spreadsheets_values->update($spreadsheetId, $range, $data, $params);
-    
-    // Redireccionar de vuelta a la página de ver usuarios
-    header('Location: VerUsuario.php');
-    exit;
+    // Redirigir o mostrar mensaje de error según el resultado de la autenticación
+    if ($isAuthenticated) {
+        // Redirigir al usuario a updatePassword.php
+        header('Location: updatePassword.php');
+        exit;
+    } else {
+        // Mostrar mensaje de error
+        $error = "El token ingresado es incorrecto.";
+        // Aquí puedes agregar código para mostrar este mensaje en tu página HTML
+    }
 }
 ?>
+
 
 
 
@@ -96,14 +93,20 @@ background-image: linear-gradient(305deg, rgba(254, 254, 254,0.02) 0%, rgba(254,
 <h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Valida tu</span> Token </h1>
 
     </div>
+
+
+
 <div class="flex justify-center items-center mt-8">
     
-  
-
 <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
-    <form class="space-y-6" action="updatePassword.php">
+    <form class="space-y-6" method="POST" action="">
         <h5 class="text-xl font-medium text-gray-900 dark:text-white">Ingresa el token correspondiente</h5>
         <div>
+
+<?php if (isset($error)): ?>
+                    <div class="text-red-500 text-sm"><?= $error ?></div>
+                <?php endif; ?>
+
             <label for="token" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Token</label>
             <input type="text" name="token" id="token" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="ingresa el token" required />
         </div>

@@ -37,41 +37,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['e
 
     $isAuthenticated = false;
 
-    foreach ($values as $index => $row) {
-        $username = $row[5]; 
-        $userEmail = $row[8]; 
-        $userRole = $row[9]; 
-        $estado = $row[10]; 
-        $token = $row[11];
+    // Verificar si se obtuvieron los valores correctamente
+    if ($values) {
+        foreach ($values as $index => $row) {
+            $username = $row[5]; 
+            $userEmail = $row[8]; 
+            $userRole = $row[9]; 
+            $estado = $row[10]; 
+            $token = $row[11];
 
-        if ($username === $inputUsername && $userEmail === $inputEmail) {
-            if ($estado === 'activo' || $estado === 'Activo') {
-                $isAuthenticated = true;
-                $_SESSION['user'] = $username;
-                $_SESSION['role'] = $userRole;
-                $_SESSION['user_id'] = $row[0];
+            if ($username === $inputUsername && $userEmail === $inputEmail) {
+                if ($estado === 'activo' || $estado === 'Activo') {
+                    $isAuthenticated = true;
+                    $_SESSION['user'] = $username;
+                    $_SESSION['role'] = $userRole;
+                    $_SESSION['user_id'] = $row[0];
 
-                // Generar un nuevo token
-                $newToken = generarToken();
+                    // Generar un nuevo token
+                    $newToken = generarToken();
 
-                // Actualizar el token en Google Sheets
-                $updateRange = 'Usuarios!L' . ($index + 2);
-                $updateBody = new \Google_Service_Sheets_ValueRange([
-                    'values' => [[ $newToken ]]
-                ]);
-                $params = ['valueInputOption' => 'RAW'];
-                $service->spreadsheets_values->update($spreadsheetId, $updateRange, $updateBody, $params);
+            
 
-                // Almacenar el token en la sesión
-                $_SESSION['token'] = $newToken;
+                    // Actualizar el token en Google Sheets
+                    $updateRange = 'Usuarios!L' . ($index + 2);
+                    $updateBody = new \Google_Service_Sheets_ValueRange([
+                        'values' => [[ $newToken ]]
+                    ]);
+                    $params = ['valueInputOption' => 'RAW'];
+                    $service->spreadsheets_values->update($spreadsheetId, $updateRange, $updateBody, $params);
 
-             
-                header('Location: validarToken.php');
-                exit;
-            } else {
-                $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
+                    // Almacenar el token en la sesión
+                    $_SESSION['token'] = $newToken;
+
+          echo '<div style="display: flex; flex-direction: column; align-items: center; background-color: #d1fae5; border: 1px solid #34d399; color: #065f46; padding: 3rem; border-radius: 0.375rem; padding-bottom: 5rem; margin: 0 2rem;" role="alert">
+    <strong style="font-weight: bold;">Token para actualizar contraseña</strong>
+    <br>
+    <span style="margin-top: 0.5rem;" class="block sm:inline">Su token de verificación es: </span>
+    <br>
+     <strong style="font-weight: bold;">' . $newToken . '</strong>
+    <div style="margin-top: 1rem;">
+        <button style="background-color: #3b82f6; color: white; font-weight: bold; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;" onclick="window.location.href = \'validarToken.php\';">
+            Aceptar
+        </button>
+    </div>
+</div>';
+
+                    // Salir del script
+                    exit;
+                } else {
+                    $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
+                }
             }
         }
+    } else {
+        // Si no se obtuvieron los valores, mostrar un mensaje de error
+        echo "Error al obtener los datos de la hoja de cálculo.";
     }
 
     if (!$isAuthenticated && !isset($error)) {
