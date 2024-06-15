@@ -37,40 +37,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userPassword = $row[6]; 
         $userRole = $row[9]; 
         $estado = $row[10]; 
+        $codigo_usuario = $row[1];
 
         // Comparar el nombre de usuario y verificar la contraseña encriptada
         if ($username === $inputUsername && password_verify($inputPassword, $userPassword)) {
-            
             if ($estado === 'activo' || $estado === 'Activo' ) {
                 $isAuthenticated = true;
                 $_SESSION['user'] = $username;
                 $_SESSION['role'] = $userRole;
                 $_SESSION['user_id'] = $row[0];
+                $_SESSION['codigo_usuario'] = $codigo_usuario; // Almacenar el código de usuario en la sesión
 
                 // Redirigir según el rol del usuario
-                if ($userRole === 'cliente' || $userRole === 'cliente') {
+                if ($userRole === 'cliente' || $userRole === 'Cliente') {
                     header('Location: ../Cliente/index.php');
                     exit;
-                } elseif ($userRole === 'administrador' || $userRole === 'administrador') {
+                } elseif ($userRole === 'administrador' || $userRole === 'Administrador') {
                     header('Location: ../Administrador/index.php');
                     exit;
-                } elseif ($userRole === 'repartidor' || $userRole === 'repartidor') {
+                } elseif ($userRole === 'repartidor' || $userRole === 'Repartidor') {
                     header('Location: ../Repartidor/index.php');
                     exit;
                 }
             } else {
-                
                 $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
             }
         }
     }
 
     if (!$isAuthenticated && !isset($error)) {
-  
         $error = "Usuario o contraseña incorrectos.";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

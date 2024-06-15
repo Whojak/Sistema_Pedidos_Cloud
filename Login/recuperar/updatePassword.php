@@ -4,9 +4,6 @@ require_once '../../vendor/autoload.php';
 // Iniciar sesión
 session_start();
 
-// Acceder a la variable de sesión del nombre de usuario
-$usuario = $_SESSION['user'];
-
 // Acceder a la variable de sesión del ID de usuario
 $userID = $_SESSION['user_id'];
 
@@ -31,22 +28,45 @@ $range = 'Usuarios!A2:L';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
-// Verificar si se envió el formulario de inicio de sesión
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'])) {
-    $inputToken = $_POST['token'];
-
-    // Variable para almacenar si la autenticación fue exitosa
-    $isAuthenticated = false;
+// Verificar si se envió el formulario de actualización de contraseña
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
+    $inputPassword = $_POST['password'];
+    
+    // Encriptar la contraseña usando password_hash
+    $hashedPassword = password_hash($inputPassword, PASSWORD_DEFAULT);
 
     // Verificar si se obtuvieron los valores correctamente
     if ($values) {
         foreach ($values as $index => $row) {
-            $token = $row[11]; // Obtener el token de la fila
+            // Comparar el ID de usuario en la hoja de cálculo con el ID de usuario de la sesión
+            if ($row[0] == $userID) {
+                // Actualizar la contraseña en la posición 6
+                $row[6] = $hashedPassword;
 
-            // Comparar el token ingresado por el usuario con el token de la fila actual
-            if ($token === $inputToken) {
-                $isAuthenticated = true;
-                break; // Salir del bucle una vez que se encuentre una coincidencia
+                // Crear los datos a actualizar
+                $data = [$row];
+
+                // Definir el rango específico de la fila a actualizar
+                $updateRange = 'Usuarios!A' . ($index + 2) . ':L' . ($index + 2);
+
+                $updateData = new \Google_Service_Sheets_ValueRange([
+                    'range' => $updateRange,
+                    'majorDimension' => 'ROWS',
+                    'values' => $data,
+                ]);
+
+                // Configurar los parámetros de actualización
+                $params = ['valueInputOption' => 'RAW'];
+
+                // Realizar la actualización de los datos en Google Sheets
+                $service->spreadsheets_values->update($spreadsheetId, $updateRange, $updateData, $params);
+
+                // Destruir la sesión
+                session_destroy();
+
+                // Redirigir al usuario a index.php
+                header('Location: ../index.php');
+                exit;
             }
         }
     } else {
@@ -54,18 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'])) {
         echo "Error al obtener los datos de la hoja de cálculo.";
     }
 
-    // Redirigir o mostrar mensaje de error según el resultado de la autenticación
-    if ($isAuthenticated) {
-        // Redirigir al usuario a updatePassword.php
-        header('Location: updatePassword.php');
-        exit;
-    } else {
-        // Mostrar mensaje de error
-        $error = "El token ingresado es incorrecto.";
-        // Aquí puedes agregar código para mostrar este mensaje en tu página HTML
-    }
+    // Si no se encontró el usuario, mostrar un mensaje de error
+    echo "Usuario no encontrado.";
 }
 ?>
+
 
 
 
@@ -99,7 +112,7 @@ background-image: linear-gradient(305deg, rgba(254, 254, 254,0.02) 0%, rgba(254,
   
 
 <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
-    <form class="space-y-6" action="../index.php">
+    <form class="space-y-6"  method="POST" action="">
         <h5 class="text-xl font-medium text-gray-900 dark:text-white">Ingresa la nueva contraseña</h5>
         <div>
             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contraseña</label>
