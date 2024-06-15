@@ -1,22 +1,36 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión si aún no se ha iniciado
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
     header('Location: index.php');
     exit;
 }
 
-// Acceder a las variables de sesión necesarias
-$usuario = $_SESSION['user'];
-$userID = $_SESSION['user_id'];
-$codigo_usuario = $_SESSION['codigo_usuario'];
+// Obtener los datos del pedido de la sesión
+if (isset($_SESSION['pedido'])) {
+    $pedido = $_SESSION['pedido'];
+} else {
+    // Si los datos no están disponibles, redirigir a la página anterior
+    header('Location: nuevoPedido.php');
+    exit;
+}
 
-// Configurar el cliente de Google
+// Definir valores predeterminados para las claves del pedido
+$codigo_pedido = $pedido['codigo_pedido'] ?? '';
+$nombre_pedido = $pedido['nombre_pedido'] ?? '';
+$descripcion = $pedido['descripcion'] ?? '';
+$tipo_pago = $pedido['tipo_pago'] ?? '';
+$codigo_usuario = $pedido['codigo_usuario'] ?? '';
+
+// Generar el código del pedido
+function generarCodigoPedido() {
+    $random_number = rand(100, 999); 
+    return 'PED' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
+}
+
+// Configurar el cliente de Google Sheets
 $client = new \Google_Client();
 $client->setApplicationName('GestorPedidos');
 $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
@@ -26,17 +40,47 @@ $client->setAuthConfig($path);
 $service = new \Google_Service_Sheets($client);
 $spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
 
+  // Obtener el último ID de la hoja de Google
+$response = $service->spreadsheets_values->get($spreadsheetId, 'Pedidos!A:A');
+$values = $response->getValues();
+$ultimo_id = end($values)[0];
+$nuevo_id = intval($ultimo_id) + 1; 
 
+// Obtener la fecha actual
+$monitoreo = date('Y-m-d H:i:s');
 
+// Insertar los datos en Google Sheets
+$insertData = new \Google_Service_Sheets_ValueRange([
+    'range' => 'Pedidos!A:J',
+    'majorDimension' => 'ROWS',
+    'values' => [[
+        $nuevo_id, generarCodigoPedido(), $nombre_pedido, $descripcion, 'Espera', '', $codigo_usuario, '', $tipo_pago, $monitoreo
+    ]],
+]);
 
-// Si el formulario ha sido enviado
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['pedido_data'])) {
-    // Decodificar los datos JSON recibidos
-    $pedido_data_json = urldecode($_GET['pedido_data']);
-    $pedido_data = json_decode($pedido_data_json, true);} else {
-    echo 'BIEN.';
+// Configurar los parámetros de inserción
+$params = [
+    'valueInputOption' => 'RAW',
+];
+
+// Insertar los datos en Google Sheets
+try {
+    $result = $service->spreadsheets_values->append($spreadsheetId, 'Pedidos!A:J', $insertData, $params);
+    if ($result->getUpdates()->getUpdatedCells() > 0) {
+        // Redirigir a la página de Mis Pedidos después de guardar los datos
+        header('Location: ../MisPedidos/misPedidos.php');
+        exit;
+    } else {
+        echo "Error al insertar los datos.";
+    }
+} catch (Exception $e) {
+    echo 'Error: ' . $e->getMessage();
 }
 ?>
+
+
+
+
 
 
 
@@ -91,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['pedido_data'])) {
 
       </li>
       <li>
-                <a href="index.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
+                <a href="nuevoPedido.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
       </li>
     
     </ul>
@@ -109,60 +153,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['pedido_data'])) {
 
 <div class="flex justify-center items-center mt-10">
   <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
-    <form class="max-w-md mx-auto" method="POST" action="">
-<dl class="max-w-md text-gray-900 divide-y divide-gray-200 dark:text-white dark:divide-gray-700">
-    <?php if (isset($pedido_data['codigo_pedido'])) : ?>
+ <form class="max-w-md mx-auto" method="POST" action="">
+    <!-- Mostrar los datos del formulario anterior -->
+    <dl class="max-w-md text-gray-900 divide-y divide-gray-200 dark:text-white dark:divide-gray-700">
         <div class="flex flex-col pb-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Código del Pedido</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['codigo_pedido']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['codigo_pedido']; ?></dd>
         </div>
-    <?php endif; ?>
-    <?php if (isset($pedido_data['nombre_pedido'])) : ?>
         <div class="flex flex-col py-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Nombre del Pedido</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['nombre_pedido']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['nombre_pedido']; ?></dd>
         </div>
-    <?php endif; ?>
-    <?php if (isset($pedido_data['descripcion'])) : ?>
         <div class="flex flex-col py-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Descripción</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['descripcion']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['descripcion']; ?></dd>
         </div>
-    <?php endif; ?>
-    <?php if (isset($pedido_data['codigo_usuario'])) : ?>
         <div class="flex flex-col py-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Código del Usuario</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['codigo_usuario']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['codigo_usuario']; ?></dd>
         </div>
-    <?php endif; ?>
-    <?php if (isset($pedido_data['tipo_pago'])) : ?>
         <div class="flex flex-col py-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Tipo de Pago</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['tipo_pago']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['tipo_pago']; ?></dd>
         </div>
-    <?php endif; ?>
-    <?php if (isset($pedido_data['monitoreo'])) : ?>
         <div class="flex flex-col pt-3">
             <dt class="mb-1 text-gray-500 md:text-lg dark:text-gray-400">Monitoreo</dt>
-            <dd class="text-lg font-semibold"><?php echo $pedido_data['monitoreo']; ?></dd>
+            <dd class="text-lg font-semibold"><?php echo $pedido['monitoreo']; ?></dd>
         </div>
-    <?php endif; ?>
-</dl>
+    </dl>
 
-
-
-      <br>
+    <br>
 
     <div class="flex justify-center items-center mt-8">
-      <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
     </div>
     <div class="flex justify-center items-center mt-8">
-  <a href="../index.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-    Volver
-  </a>
-</div>
-    
-    </form>
+        <a href="nuevoPedido.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Volver</a>
+    </div>
+
+</form>
+
   </div>
 </div>
 

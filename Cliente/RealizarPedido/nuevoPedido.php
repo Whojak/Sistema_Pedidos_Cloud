@@ -1,54 +1,60 @@
 <?php
-// Iniciar sesión si aún no se ha iniciado
+require_once '../../vendor/autoload.php';
+
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
     header('Location: index.php');
     exit;
 }
 
-// Si el formulario ha sido enviado
+// Función para generar el código del pedido
+function generarCodigoPedido() {
+    $random_number = rand(100, 999); 
+    return 'PED' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
+}
+
+// Verificar si se ha enviado el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Datos del formulario
+    // Capturar los datos del formulario
     $nombre_pedido = $_POST['nombre_pedido'];
     $descripcion = $_POST['descripcion'];
     $tipo_pago = $_POST['tipo_pago'];
 
     // Generar código de pedido
-    function generarCodigoPedido() {
-        $random_number = rand(100, 999); 
-        return 'PED' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
-    }
-    
     $codigo_pedido = generarCodigoPedido();
     $estado = "Espera";
     $concepto = "";
+    $codigo_usuario = $_SESSION['codigo_usuario'];
     $codigo_repartidor = "";
     $monitoreo = date('Y-m-d H:i:s'); // Obtener la fecha actual
 
-    // Almacenar los datos en un array asociativo
-    $pedido_data = [
+    // Almacenar los datos en la sesión
+    $_SESSION['pedido'] = [
         'codigo_pedido' => $codigo_pedido,
         'nombre_pedido' => $nombre_pedido,
         'descripcion' => $descripcion,
         'estado' => $estado,
         'concepto' => $concepto,
-        'codigo_usuario' => $_SESSION['codigo_usuario'],
+        'codigo_usuario' => $codigo_usuario,
         'codigo_repartidor' => $codigo_repartidor,
         'tipo_pago' => $tipo_pago,
         'monitoreo' => $monitoreo
     ];
 
-    // Codificar los datos como JSON
-    $pedido_data_json = json_encode($pedido_data);
-
-    // Redirigir a listaPedido.php y pasar los datos como parámetros en la URL
-    header('Location: listaPedido.php?pedido_data=' . urlencode($pedido_data_json));
-    exit;
+    // Verificar si el tipo de pago es "Tarjeta"
+    if ($tipo_pago === 'Tarjeta') {
+        // Redirigir a la página de tarjeta.php
+        header('Location: tarjeta.php');
+        exit;
+    } else {
+        // Redirigir a la página de listaPedido.php
+        header('Location: listaPedido.php');
+        exit;
+    }
 }
 ?>
+
 
 
 
@@ -119,10 +125,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="flex justify-center items-center mt-20">
 <h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Hacer</span> nuevo pedido </h1>
 </div>
+ 
+
 
 <div class="flex justify-center items-center mt-10">
   <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
     <form class="max-w-md mx-auto" method="POST" action="">
+    
       <!-- Campo para Nombre del Pedido -->
       <div class="relative z-0 w-full mb-5 group">
         <input type="text" name="nombre_pedido" id="nombre_pedido" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
@@ -140,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <select name="tipo_pago" id="tipo_pago" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" required>
           <option value="" disabled selected></option>
           <option value="Presencial">Pago presencial</option>
-          <option value="Tajeta">Pago con tarjeta</option>
+          <option value="Tarjeta">Pago con tarjeta</option>
         </select>
         <label for="tipo_pago" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Tipo de Pago</label>
       </div>
@@ -149,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>   
     
     <div class="flex justify-center items-center mt-8">
-  <a href="../index.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+  <a href="listaPedido.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
     Volver
   </a>
 </div>

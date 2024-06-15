@@ -32,12 +32,14 @@ $values = $response->getValues();
 $pedidosUsuario = [];
 if (!empty($values)) {
     foreach ($values as $row) {
-        if ($row[6] == $codigo_usuario) { // Comprueba el código de usuario en la columna G (índice 6)
+        // Verificar si la fila tiene suficientes elementos y si el código de usuario coincide
+        if (isset($row[6]) && $row[6] == $codigo_usuario) { // Comprueba el código de usuario en la columna G (índice 6)
             $pedidosUsuario[] = $row; // Agrega la fila completa al array de pedidos del usuario
         }
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

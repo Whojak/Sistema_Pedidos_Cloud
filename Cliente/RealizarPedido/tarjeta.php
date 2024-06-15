@@ -1,162 +1,66 @@
 <?php
 require_once '../../vendor/autoload.php';
-// Iniciar sesión si aún no se ha iniciado
+
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
     header('Location: index.php');
     exit;
 }
-
-// Acceder a la variable de sesión del nombre de usuario
-$usuario = $_SESSION['user'];
-
-// Acceder a la variable de sesión del ID de usuario
-$userID = $_SESSION['user_id'];
-
-// Verificar si el código de usuario está definido en la sesión
-if (!isset($_SESSION['codigo_usuario'])) {
-    // Manejar el caso en que la variable de sesión no esté definida
-    echo "Error: El código de usuario no está definido.";
-    exit;
-}
-
-// Acceder a la variable de sesión del código de usuario
-$codigo_usuario = $_SESSION['codigo_usuario'];
 
 // Configurar el cliente de Google
 $client = new \Google_Client();
 $client->setApplicationName('GestorPedidos');
 $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
 $client->setAccessType('offline');
-
-// El archivo credentials.json 
 $path = '../../data/credentials.json';
 $client->setAuthConfig($path);
-
-// Configurar el servicio de Google Sheets
 $service = new \Google_Service_Sheets($client);
-
 $spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
 
-// Función para encriptar la contraseña
-function encriptar_contrasena($contrasena) {
-    return password_hash($contrasena, PASSWORD_BCRYPT);
-}
+// Obtener el último ID de la hoja de Google
+$response = $service->spreadsheets_values->get($spreadsheetId, 'Pedidos!A:A');
+$values = $response->getValues();
+$ultimo_id = end($values)[0];
+$nuevo_id = intval($ultimo_id) + 1;
 
-// Función para verificar si el nombre de usuario ya existe
-function verificar_usuario_existente($service, $spreadsheetId, $usuario) {
-    $range = 'Usuarios!F:F'; 
-    $response = $service->spreadsheets_values->get($spreadsheetId, $range);
-    $values = $response->getValues();
-    
-    foreach ($values as $row) {
-        if ($row[0] == $usuario) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
+// Verificar si se ha enviado el formulario desde tarjeta.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'];
-    $apellido = $_POST['apellido'];
-    $edad = $_POST['edad'];
-    $usuario = $_POST['usuario'];
-    $contrasena = $_POST['contrasena'];
-    $telefono = $_POST['telefono'];
-    $correo = $_POST['correo'];
-    $tipo_usuario = $_POST['tipo_usuario'];
-    $estado = $_POST['estado'];
+    // Obtener los datos del pedido de la sesión
+    if (isset($_SESSION['pedido'])) {
+        $pedido = $_SESSION['pedido'];
 
-    // Verificar si el usuario ya existe
-if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
-    echo '<div style="display: flex; flex-direction: column; align-items: center; background-color: #fcd9d9; border: 1px solid #f56565; color: #c53030; padding: 3rem; border-radius: 0.375rem; padding-bottom: 5rem; margin: 0 2rem;" role="alert">
-            <strong style="font-weight: bold;">Error de envio:</strong>
-            <span style="margin-top: 0.5rem;" class="block sm:inline">El nombre de usuario ya existe. Por favor, elija otro nombre de usuario.</span>
-            <div style="margin-top: 1rem;">
-                <button style="background-color: #3b82f6; color: white; font-weight: bold; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;" onclick="window.location.href = \'registrarUsuario.php\';">
-                    Aceptar
-                </button>
-            </div>
-          </div>';
-    exit;
-}
+        // Insertar el nuevo ID como primer valor en los datos del pedido
+        array_unshift($pedido, $nuevo_id);
 
+        // Datos a enviar a la hoja de Google
+        $insertData = new \Google_Service_Sheets_ValueRange([
+            'range' => 'Pedidos!A:J',
+            'majorDimension' => 'ROWS',
+            'values' => [array_values($pedido)], // Convertir el array asociativo a un array indexado
+        ]);
 
+        // Configurar los parámetros de inserción
+        $params = [
+            'valueInputOption' => 'RAW',
+        ];
 
-    // Encriptar la contraseña
-    $contrasena_encriptada = encriptar_contrasena($contrasena);
-
-    // Asignar el código de usuario según el tipo de usuario
-    switch ($tipo_usuario) {
-        case 'cliente':
-            $random_number = rand(100, 999); 
-            $codigo_usuario = 'CLI' . str_pad($random_number, 6, '0', STR_PAD_LEFT); 
-            break;
-        case 'repartidor':
-            $random_number = rand(100, 999); 
-            $codigo_usuario = 'REP' . str_pad($random_number, 6, '0', STR_PAD_LEFT); 
-            break;
-        case 'administrador':
-            $random_number = rand(100, 999); 
-            $codigo_usuario = 'ADM' . str_pad($random_number, 6, '0', STR_PAD_LEFT); 
-            break;
-        default:
-            $codigo_usuario = 'nulo'; // En caso de un tipo de usuario no reconocido
-            break;
-    }
-
-    $token = 'nulo';
-
-    // Obtener el último ID de la hoja de Google
-    $range = 'Usuarios!A:A';
-    $response = $service->spreadsheets_values->get($spreadsheetId, $range);
-    $values = $response->getValues();
-    
-    // Obtener el ID de la última fila
-    if (!empty($values)) {
-        $lastId = intval(end($values)[0]);
-    } else {
-        $lastId = 0; 
-    }
-
-    // Incrementar el ID
-    $newId = $lastId + 1;
-
-    $insertData = new \Google_Service_Sheets_ValueRange([
-        'range' => 'Usuarios!A:L', 
-        'majorDimension' => 'ROWS',
-        'values' => [[
-            $newId, $codigo_usuario, $nombre, $apellido, $edad, $usuario, $contrasena_encriptada, $telefono, $correo, $tipo_usuario, $estado, $token
-        ]],
-    ]);
-
-    // Configurar los parámetros de inserción
-    $params = [
-        'valueInputOption' => 'RAW',
-    ];
-
-    // Insertar los datos en Google Sheets
-    try {
-        $result = $service->spreadsheets_values->append($spreadsheetId, 'Usuarios!A:L', $insertData, $params);
-        if ($result->getUpdates()->getUpdatedCells() > 0) {
-            header('Location: ../VerUsuario/VerUsuario.php');
-            exit;
-        } else {
-            echo "Error al insertar los datos.";
+        // Insertar los datos en Google Sheets
+        try {
+            $result = $service->spreadsheets_values->append($spreadsheetId, 'Pedidos!A:J', $insertData, $params);
+            if ($result->getUpdates()->getUpdatedCells() > 0) {
+                // Redirigir a la página de Mis Pedidos
+                header('Location: ../MisPedidos/misPedidos.php');
+                exit;
+            } else {
+                echo "Error al insertar los datos.";
+            }
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
         }
-    } catch (Exception $e) {
-        echo 'Error: ' . $e->getMessage();
     }
-} else {
-    echo 'BIEN.';
 }
 ?>
-
 
 
 
@@ -211,7 +115,7 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
 
       </li>
       <li>
-                <a href="index.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
+                <a href="nuevoPedido.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
       </li>
     
     </ul>
@@ -233,6 +137,13 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
       
      
 <form class="max-w-sm mx-auto"  method="POST" action="">
+
+     <input type="hidden" name="codigo_pedido" value="<?php echo $codigo_pedido; ?>">
+        <input type="hidden" name="estado" value="<?php echo $estado; ?>">
+        <input type="hidden" name="concepto" value="<?php echo $concepto; ?>">
+        <input type="hidden" name="codigo_usuario" value="<?php echo $codigo_usuario; ?>">
+        <input type="hidden" name="codigo_repartidor" value="<?php echo $codigo_repartidor; ?>">
+        <input type="hidden" name="monitoreo" value="<?php echo $monitoreo; ?>">
     <label for="card-number-input" class="sr-only">Card number:</label>
     <div class="relative">
         <input type="text" id="card-number-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pe-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="4242 4242 4242 4242" pattern="^4[0-9]{12}(?:[0-9]{3})?$" required />
@@ -257,7 +168,7 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Pay now</button>
 </div>
 <div class="flex justify-center items-center mt-8">
-  <a href="../index.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+  <a href="nuevoPedido.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
     Volver
   </a>
 </div>

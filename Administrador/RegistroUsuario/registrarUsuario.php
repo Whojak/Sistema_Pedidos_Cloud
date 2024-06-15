@@ -134,7 +134,6 @@ if (verificar_usuario_existente($service, $spreadsheetId, $usuario)) {
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
