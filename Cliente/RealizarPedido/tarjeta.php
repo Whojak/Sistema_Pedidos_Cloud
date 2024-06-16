@@ -1,66 +1,3 @@
-<?php
-require_once '../../vendor/autoload.php';
-
-session_start();
-
-if (!isset($_SESSION['user'])) {
-    header('Location: index.php');
-    exit;
-}
-
-// Configurar el cliente de Google
-$client = new \Google_Client();
-$client->setApplicationName('GestorPedidos');
-$client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-$client->setAccessType('offline');
-$path = '../../data/credentials.json';
-$client->setAuthConfig($path);
-$service = new \Google_Service_Sheets($client);
-$spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
-
-// Obtener el último ID de la hoja de Google
-$response = $service->spreadsheets_values->get($spreadsheetId, 'Pedidos!A:A');
-$values = $response->getValues();
-$ultimo_id = end($values)[0];
-$nuevo_id = intval($ultimo_id) + 1;
-
-// Verificar si se ha enviado el formulario desde tarjeta.php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Obtener los datos del pedido de la sesión
-    if (isset($_SESSION['pedido'])) {
-        $pedido = $_SESSION['pedido'];
-
-        // Insertar el nuevo ID como primer valor en los datos del pedido
-        array_unshift($pedido, $nuevo_id);
-
-        // Datos a enviar a la hoja de Google
-        $insertData = new \Google_Service_Sheets_ValueRange([
-            'range' => 'Pedidos!A:J',
-            'majorDimension' => 'ROWS',
-            'values' => [array_values($pedido)], // Convertir el array asociativo a un array indexado
-        ]);
-
-        // Configurar los parámetros de inserción
-        $params = [
-            'valueInputOption' => 'RAW',
-        ];
-
-        // Insertar los datos en Google Sheets
-        try {
-            $result = $service->spreadsheets_values->append($spreadsheetId, 'Pedidos!A:J', $insertData, $params);
-            if ($result->getUpdates()->getUpdatedCells() > 0) {
-                // Redirigir a la página de Mis Pedidos
-                header('Location: ../MisPedidos/misPedidos.php');
-                exit;
-            } else {
-                echo "Error al insertar los datos.";
-            }
-        } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage();
-        }
-    }
-}
-?>
 
 
 
@@ -136,14 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   
       
      
-<form class="max-w-sm mx-auto"  method="POST" action="">
+<form class="max-w-sm mx-auto"  action="listaPedido.php">
 
-     <input type="hidden" name="codigo_pedido" value="<?php echo $codigo_pedido; ?>">
-        <input type="hidden" name="estado" value="<?php echo $estado; ?>">
-        <input type="hidden" name="concepto" value="<?php echo $concepto; ?>">
-        <input type="hidden" name="codigo_usuario" value="<?php echo $codigo_usuario; ?>">
-        <input type="hidden" name="codigo_repartidor" value="<?php echo $codigo_repartidor; ?>">
-        <input type="hidden" name="monitoreo" value="<?php echo $monitoreo; ?>">
+   
     <label for="card-number-input" class="sr-only">Card number:</label>
     <div class="relative">
         <input type="text" id="card-number-input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pe-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="4242 4242 4242 4242" pattern="^4[0-9]{12}(?:[0-9]{3})?$" required />
