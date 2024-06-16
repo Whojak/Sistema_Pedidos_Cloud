@@ -28,17 +28,43 @@ $range = 'Pedidos!A2:J';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
-// Filtrar los campos por el código de usuario
+// Filtrar los campos por el código de usuario y estado
 $pedidosUsuario = [];
 if (!empty($values)) {
     foreach ($values as $row) {
-        // Verificar si la fila tiene suficientes elementos y si el código de usuario coincide
-        if (isset($row[6]) && $row[6] == $codigo_usuario) { // Comprueba el código de usuario en la columna G (índice 6)
+        // Verificar si la fila tiene suficientes elementos, si el código de usuario coincide y si el estado es distinto de 'Inactivo'
+        if (isset($row[6]) && $row[6] == $codigo_usuario && (isset($row[4]) && $row[4] != 'Inactivo')) { // Comprueba el código de usuario en la columna G (índice 6) y el estado en la columna E (índice 4)
             $pedidosUsuario[] = $row; // Agrega la fila completa al array de pedidos del usuario
         }
     }
 }
+
+// Manejar la solicitud POST para despedir un pedido
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
+    $idPedido = $_POST['id'];
+
+    // Buscar el pedido en los datos obtenidos
+    foreach ($values as $index => $row) {
+        if ($row[0] == $idPedido) { // Comprueba el ID del pedido en la columna A (índice 0)
+            // Actualizar el estado del pedido a "Inactivo"
+            $range = 'Pedidos!E' . ($index + 2); // Columna E (índice 4), fila correspondiente
+            $body = new \Google_Service_Sheets_ValueRange([
+                'values' => [['Inactivo']]
+            ]);
+            $params = [
+                'valueInputOption' => 'RAW'
+            ];
+            $service->spreadsheets_values->update($spreadsheetId, $range, $body, $params);
+            break;
+        }
+    }
+
+    // Redirigir a la página actual para evitar el reenvío del formulario al actualizar
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
 ?>
+
 
 
 
@@ -134,24 +160,35 @@ if (!empty($values)) {
                     <th scope="col" class="px-6 py-3">Repartidor Asignado</th>
                     <th scope="col" class="px-6 py-3">Tipo de Pago</th>
                     <th scope="col" class="px-6 py-3">Monitoreo</th>
+                    <th scope="col" class="px-6 py-3">Accion</th>
              
                 </tr>
             </thead>
             <tbody>
                 <!-- Aquí va tu código PHP para rellenar la tabla -->
                <?php
-                if (!empty($pedidosUsuario)) {
-                    foreach ($pedidosUsuario as $row) {
-                        echo "<tr class='bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'>";
-                        foreach ($row as $cell) {
-                            echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>$cell</td>";
-                        }
-                        echo "</tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='10' class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>No se encontraron pedidos para el código de usuario: " . htmlspecialchars($codigo_usuario) . "</td></tr>";
-                }
-                ?>
+               if (!empty($pedidosUsuario)) {
+    foreach ($pedidosUsuario as $row) {
+        echo "<tr class='bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'>";
+        foreach ($row as $cell) {
+            echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>$cell</td>";
+        }
+        // Añadir una celda para el botón
+        echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>";
+        echo "<form action='' method='post'>
+                <input type='hidden' name='id' value='{$row[0]}'>
+                <button type='submit' name='despedir' class='flowbite-button bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-white text-sm px-4 py-2'>Eliminar</button>
+              </form>";
+        echo "</td>";
+        echo "</tr>";
+    }
+} else {
+    echo "<tr><td colspan='10' class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>No se encontraron pedidos para el código de usuario: " . htmlspecialchars($codigo_usuario) . "</td></tr>";
+}
+?>
+
+
+            
             </tbody>
         </table>
     </div>

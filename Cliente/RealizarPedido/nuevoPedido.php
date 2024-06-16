@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       </li>
       <li>
-                <a href="index.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
+                <a href="nuevoPedido.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Realizar pedido</a>
       </li>
     
     </ul>
@@ -133,10 +133,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form class="max-w-md mx-auto" method="POST" action="">
     
       <!-- Campo para Nombre del Pedido -->
-      <div class="relative z-0 w-full mb-5 group">
-        <input type="text" name="nombre_pedido" id="nombre_pedido" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
-        <label for="nombre_pedido" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nombre del Pedido</label>
-      </div>
+     <div class="relative z-0 w-full mb-5 group">
+    <select name="nombre_pedido" id="nombre_pedido" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" required>
+        <option value="" disabled selected hidden></option>
+        <option value="medicina">Medicina</option>
+        <option value="comida">Comida</option>
+        <option value="maquillaje">Maquillaje</option>
+        <option value="ropa">Ropa</option>
+        <option value="electronica">Electrónica</option>
+        <option value="juguetes">Juguetes</option>
+        <option value="libros">Libros</option>
+        <option value="hogar">Hogar</option>
+        <option value="deportes">Deportes</option>
+        <option value="otros">Otros</option>
+    </select>
+    <label for="nombre_pedido" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Concepto del Pedido</label>
+</div>
+
       
       <!-- Campo para Descripción del Pedido -->
       <div class="relative z-0 w-full mb-5 group">
@@ -158,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>   
     
     <div class="flex justify-center items-center mt-8">
-  <a href="listaPedido.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+  <a href="../index.php" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
     Volver
   </a>
 </div>
