@@ -7,30 +7,8 @@ if (!isset($_SESSION['user'])) {
     header('Location: index.php');
     exit;
 }
-
-// Obtener los datos del pedido de la sesión
-if (isset($_SESSION['pedido'])) {
-    $pedido = $_SESSION['pedido'];
-} else {
-    // Si los datos no están disponibles, redirigir a la página anterior
-    header('Location: nuevoPedido.php');
-    exit;
-}
-
-// Definir valores predeterminados para las claves del pedido
-$codigo_pedido = $pedido['codigo_pedido'] ?? '';
-$nombre_pedido = $pedido['nombre_pedido'] ?? '';
-$descripcion = $pedido['descripcion'] ?? '';
-$tipo_pago = $pedido['tipo_pago'] ?? '';
-$codigo_usuario = $pedido['codigo_usuario'] ?? '';
-
-// Generar el código del pedido
-function generarCodigoPedido() {
-    $random_number = rand(100, 999); 
-    return 'PED' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
-}
-
-// Configurar el cliente de Google Sheets
+$pedido = $_SESSION['pedido'];
+// Configurar el cliente de Google
 $client = new \Google_Client();
 $client->setApplicationName('GestorPedidos');
 $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
@@ -40,41 +18,47 @@ $client->setAuthConfig($path);
 $service = new \Google_Service_Sheets($client);
 $spreadsheetId = '1QgmCzgtygUVkGSIEOHGSdrQflhBEBxyhk7YP0x9DcT0';
 
-  // Obtener el último ID de la hoja de Google
+// Obtener el último ID de la hoja de Google
 $response = $service->spreadsheets_values->get($spreadsheetId, 'Pedidos!A:A');
 $values = $response->getValues();
 $ultimo_id = end($values)[0];
-$nuevo_id = intval($ultimo_id) + 1; 
+$nuevo_id = intval($ultimo_id) + 1;
 
-// Obtener la fecha actual
-$monitoreo = date('Y-m-d H:i:s');
+// Verificar si se ha enviado el formulario desde tarjeta.php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Obtener los datos del pedido de la sesión
+    if (isset($_SESSION['pedido'])) {
+        $pedido = $_SESSION['pedido'];
 
-// Insertar los datos en Google Sheets
-$insertData = new \Google_Service_Sheets_ValueRange([
-    'range' => 'Pedidos!A:J',
-    'majorDimension' => 'ROWS',
-    'values' => [[
-        $nuevo_id, generarCodigoPedido(), $nombre_pedido, $descripcion, 'Espera', '', $codigo_usuario, '', $tipo_pago, $monitoreo
-    ]],
-]);
+        // Insertar el nuevo ID como primer valor en los datos del pedido
+        array_unshift($pedido, $nuevo_id);
 
-// Configurar los parámetros de inserción
-$params = [
-    'valueInputOption' => 'RAW',
-];
+        // Datos a enviar a la hoja de Google
+        $insertData = new \Google_Service_Sheets_ValueRange([
+            'range' => 'Pedidos!A:J',
+            'majorDimension' => 'ROWS',
+            'values' => [array_values($pedido)], // Convertir el array asociativo a un array indexado
+        ]);
 
-// Insertar los datos en Google Sheets
-try {
-    $result = $service->spreadsheets_values->append($spreadsheetId, 'Pedidos!A:J', $insertData, $params);
-    if ($result->getUpdates()->getUpdatedCells() > 0) {
-        // Redirigir a la página de Mis Pedidos después de guardar los datos
-        header('Location: ../MisPedidos/misPedidos.php');
-        exit;
-    } else {
-        echo "Error al insertar los datos.";
+        // Configurar los parámetros de inserción
+        $params = [
+            'valueInputOption' => 'RAW',
+        ];
+
+        // Insertar los datos en Google Sheets
+        try {
+            $result = $service->spreadsheets_values->append($spreadsheetId, 'Pedidos!A:J', $insertData, $params);
+            if ($result->getUpdates()->getUpdatedCells() > 0) {
+                // Redirigir a la página de Mis Pedidos
+                header('Location: ../MisPedidos/misPedidos.php');
+                exit;
+            } else {
+                echo "Error al insertar los datos.";
+            }
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
     }
-} catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage();
 }
 ?>
 
@@ -153,7 +137,7 @@ try {
 
 <div class="flex justify-center items-center mt-10">
   <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
- <form class="max-w-md mx-auto" method="POST" action="">
+<form class="max-w-md mx-auto" method="POST" action="">
     <!-- Mostrar los datos del formulario anterior -->
     <dl class="max-w-md text-gray-900 divide-y divide-gray-200 dark:text-white dark:divide-gray-700">
         <div class="flex flex-col pb-3">
@@ -192,6 +176,7 @@ try {
     </div>
 
 </form>
+
 
   </div>
 </div>
