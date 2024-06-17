@@ -1,3 +1,43 @@
+
+<?php
+// Iniciar sesión si aún no se ha iniciado
+session_start();
+
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['user'])) {
+    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
+    header('Location: index.php');
+    exit;
+}
+
+// Acceder a la variable de sesión del nombre de usuario
+$usuario = $_SESSION['user'];
+
+// Acceder a la variable de sesión del ID de usuario
+$userID = $_SESSION['user_id'];
+
+// Verificar si el código de usuario está definido en la sesión
+if (!isset($_SESSION['codigo_usuario'])) {
+    // Manejar el caso en que la variable de sesión no esté definida
+    echo "Error: El código de usuario no está definido.";
+    exit;
+}
+
+// Acceder a la variable de sesión del código de usuario
+$codigo_usuario = $_SESSION['codigo_usuario'];
+
+// Comprobar si se ha hecho clic en el botón "Volver"
+if (isset($_POST['logout'])) {
+    // Destruir todas las variables de sesión
+    session_unset();
+    // Destruir la sesión
+    session_destroy();
+    // Redirigir al usuario de vuelta al inicio de sesión
+    header('Location: ../Login/index.php');
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,10 +83,10 @@
         <a href="index.php" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500" aria-current="page">Menu</a>
       </li>
       <li>
-        <a href="./RegistroUsuario/registrarUsuario.php" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Pedidos asignados</a>
+        <a href="./VerMisPedidos/misPedidos.php" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Pedidos asignados</a>
       </li>
       <li>
-        <a href="./VerUsuario/VerUsuario.php" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Pedidos realizados</a>
+        <a href="./PedidosHechos/pedidosHechos.php" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Pedidos realizados</a>
       </li>
     
     </ul>
@@ -60,7 +100,7 @@
 <div class="flex justify-center items-center mt-20">
     
 
-<h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Bienvenido</span> Whojak2 </h1>
+<h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Bienvenido</span> <?php echo $usuario; ?> </h1>
 
 </div>
 
@@ -77,11 +117,11 @@
      <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 21 21">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6.072 10.072 2 2 6-4m3.586 4.314.9-.9a2 2 0 0 0 0-2.828l-.9-.9a2 2 0 0 1-.586-1.414V5.072a2 2 0 0 0-2-2H13.8a2 2 0 0 1-1.414-.586l-.9-.9a2 2 0 0 0-2.828 0l-.9.9a2 2 0 0 1-1.414.586H5.072a2 2 0 0 0-2 2v1.272a2 2 0 0 1-.586 1.414l-.9.9a2 2 0 0 0 0 2.828l.9.9a2 2 0 0 1 .586 1.414v1.272a2 2 0 0 0 2 2h1.272a2 2 0 0 1 1.414.586l.9.9a2 2 0 0 0 2.828 0l.9-.9a2 2 0 0 1 1.414-.586h1.272a2 2 0 0 0 2-2V13.8a2 2 0 0 1 .586-1.414Z"/>
 </svg>
-        <a href="./VerUsuario/VerUsuario.php">
+        <a href="./VerMisPedidos/misPedidos.php">
             <h5 class="mb-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Pedidos asignados</h5>
         </a>
         <p class="mb-3 font-normal text-gray-500 dark:text-gray-400">Apartado para ver los pedidos que me han asignado</p>
-        <a href="./VerUsuario/VerUsuario.php" class="inline-flex font-medium items-center text-blue-600 hover:underline">
+        <a href="./VerMisPedidos/misPedidos.php" class="inline-flex font-medium items-center text-blue-600 hover:underline">
             Ver mis pedidos
             <svg class="w-3 h-3 ms-2.5 rtl:rotate-[270deg]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778"/>
@@ -95,11 +135,11 @@
      <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
     <path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M8 8v1h4V8m4 7H4a1 1 0 0 1-1-1V5h14v9a1 1 0 0 1-1 1ZM2 1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Z"/>
 </svg>
-        <a href="./AsignarRepartidor/pedidos.php">
+        <a href="./PedidosHechos/pedidosHechos.php">
             <h5 class="mb-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Pedidos realizados</h5>
         </a>
         <p class="mb-3 font-normal text-gray-500 dark:text-gray-400">Apartado para ver los pedidos que he realizado en la plataforma</p>
-        <a href="./AsignarRepartidor/pedidos.php" class="inline-flex font-medium items-center text-blue-600 hover:underline">
+        <a href="./PedidosHechos/pedidosHechos.php" class="inline-flex font-medium items-center text-blue-600 hover:underline">
             Ver mis pedidos hechos
             <svg class="w-3 h-3 ms-2.5 rtl:rotate-[270deg]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778"/>

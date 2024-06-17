@@ -44,11 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verificar si el tipo de pago es "Tarjeta"
     if ($tipo_pago === 'Tarjeta') {
-        // Redirigir a la página de tarjeta.php
+ 
         header('Location: tarjeta.php');
         exit;
     } else {
-        // Redirigir a la página de listaPedido.php
+ 
         header('Location: listaPedido.php');
         exit;
     }

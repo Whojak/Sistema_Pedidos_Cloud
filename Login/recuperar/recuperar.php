@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['e
     </div>
 </div>';
 
-                    // Salir del script
+                    
                     exit;
                 } else {
                     $error = "Tu cuenta está inactiva. Por favor, contacta con el administrador.";
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['e
             }
         }
     } else {
-        // Si no se obtuvieron los valores, mostrar un mensaje de error
+
         echo "Error al obtener los datos de la hoja de cálculo.";
     }
 

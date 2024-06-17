@@ -4,7 +4,7 @@ require_once '../../vendor/autoload.php';
 // Iniciar sesión
 session_start();
 
-// Acceder a la variable de sesión del ID de usuario
+
 $userID = $_SESSION['user_id'];
 
 // Configurar el cliente de Google
@@ -38,15 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
     // Verificar si se obtuvieron los valores correctamente
     if ($values) {
         foreach ($values as $index => $row) {
-            // Comparar el ID de usuario en la hoja de cálculo con el ID de usuario de la sesión
             if ($row[0] == $userID) {
-                // Actualizar la contraseña en la posición 6
+                // Actualizar la contraseña
                 $row[6] = $hashedPassword;
 
-                // Crear los datos a actualizar
+               
                 $data = [$row];
 
-                // Definir el rango específico de la fila a actualizar
+           
                 $updateRange = 'Usuarios!A' . ($index + 2) . ':L' . ($index + 2);
 
                 $updateData = new \Google_Service_Sheets_ValueRange([
@@ -55,26 +54,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
                     'values' => $data,
                 ]);
 
-                // Configurar los parámetros de actualización
+             
                 $params = ['valueInputOption' => 'RAW'];
 
-                // Realizar la actualización de los datos en Google Sheets
+              
                 $service->spreadsheets_values->update($spreadsheetId, $updateRange, $updateData, $params);
 
-                // Destruir la sesión
+       
                 session_destroy();
 
-                // Redirigir al usuario a index.php
+               
                 header('Location: ../index.php');
                 exit;
             }
         }
     } else {
-        // Si no se obtuvieron los valores, mostrar un mensaje de error
+  
         echo "Error al obtener los datos de la hoja de cálculo.";
     }
 
-    // Si no se encontró el usuario, mostrar un mensaje de error
+   
     echo "Usuario no encontrado.";
 }
 ?>

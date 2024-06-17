@@ -35,34 +35,33 @@ $values = $response->getValues();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'])) {
     $inputToken = $_POST['token'];
 
-    // Variable para almacenar si la autenticación fue exitosa
+    
     $isAuthenticated = false;
 
     // Verificar si se obtuvieron los valores correctamente
     if ($values) {
         foreach ($values as $index => $row) {
-            $token = $row[11]; // Obtener el token de la fila
+            $token = $row[11]; 
 
-            // Comparar el token ingresado por el usuario con el token de la fila actual
             if ($token === $inputToken) {
                 $isAuthenticated = true;
-                break; // Salir del bucle una vez que se encuentre una coincidencia
+                break; 
             }
         }
     } else {
-        // Si no se obtuvieron los valores, mostrar un mensaje de error
+       
         echo "Error al obtener los datos de la hoja de cálculo.";
     }
 
-    // Redirigir o mostrar mensaje de error según el resultado de la autenticación
+    
     if ($isAuthenticated) {
-        // Redirigir al usuario a updatePassword.php
+     
         header('Location: updatePassword.php');
         exit;
     } else {
-        // Mostrar mensaje de error
+     
         $error = "El token ingresado es incorrecto.";
-        // Aquí puedes agregar código para mostrar este mensaje en tu página HTML
+        
     }
 }
 ?>
