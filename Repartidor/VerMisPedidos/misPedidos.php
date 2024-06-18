@@ -5,6 +5,10 @@ require_once '../../vendor/autoload.php';
 session_start();
 
 // Acceder a la variable de sesión del código de usuario
+if (!isset($_SESSION['codigo_usuario'])) {
+    echo "Código de usuario no está configurado en la sesión.";
+    exit;
+}
 $codigo_usuario = $_SESSION['codigo_usuario'];
 
 // Configurar el cliente de Google
@@ -28,13 +32,17 @@ $range = 'Pedidos!A2:J';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
+// Verificar si se obtuvieron datos de la hoja
+if (empty($values)) {
+    echo "No se obtuvieron datos de la hoja.";
+    exit;
+}
+
 // Filtrar los campos por el código de usuario y estado
 $pedidosUsuario = [];
-if (!empty($values)) {
-    foreach ($values as $row) {
-        if (isset($row[7]) && $row[7] == $codigo_usuario && (isset($row[4]) && $row[4] == 'Aceptado'  )) { 
-            $pedidosUsuario[] = $row; 
-        }
+foreach ($values as $row) {
+    if (isset($row[7]) && $row[7] == $codigo_usuario && isset($row[4]) && $row[4] == 'Aceptado') { 
+        $pedidosUsuario[] = $row; 
     }
 }
 
@@ -57,13 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
         }
     }
 
-   
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
 ?>
-
-
 
 
 <!DOCTYPE html>
@@ -141,54 +146,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
     </form>
 </div>
 
-<div class="flex justify-center items-center mt-10 px-10">
+<div class="container mx-auto mt-10">
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white dark:bg-gray-800 p-4">
-        <table id="pedidoTable" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 mb-8">
+        <table class="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3">ID</th>
-                    <th scope="col" class="px-6 py-3">Código Pedido</th>
-                    <th scope="col" class="px-6 py-3">Pedido</th>
-                    <th scope="col" class="px-6 py-3">Descripción</th>
-                    <th scope="col" class="px-6 py-3">Estado</th>
-                    <th scope="col" class="px-6 py-3">Concepto</th>
-                    <th scope="col" class="px-6 py-3">Usuario Relacionado</th>
-                    <th scope="col" class="px-6 py-3">Repartidor Asignado</th>
-                    <th scope="col" class="px-6 py-3">Tipo de Pago</th>
-                    <th scope="col" class="px-6 py-3">Monitoreo</th>
-                    <th scope="col" class="px-6 py-3">Accion</th>
-             
+                    <th class="px-6 py-3">ID</th>
+                    <th class="px-6 py-3">Código Pedido</th>
+                    <th class="px-6 py-3">Pedido</th>
+                    <th class="px-6 py-3">Descripción</th>
+                    <th class="px-6 py-3">Estado</th>
+                    <th class="px-6 py-3">Código Usuario</th>
+                    <th class="px-6 py-3">Código Repartidor</th>
+                    <th class="px-6 py-3">Tipo de Pago</th>
+                    <th class="px-6 py-3">Monitoreo</th>
+                    <th class="px-6 py-3">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Aquí va tu código PHP para rellenar la tabla -->
-               <?php
-               if (!empty($pedidosUsuario)) {
-    foreach ($pedidosUsuario as $row) {
-        echo "<tr class='bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'>";
-        foreach ($row as $cell) {
-            echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>$cell</td>";
-        }
-        // Añadir una celda para el botón
-        echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>";
-        echo "<form action='' method='post'>
-                <input type='hidden' name='id' value='{$row[0]}'>
-                <button type='submit' name='despedir' class='flowbite-button bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-white text-sm px-4 py-2'>Entregar</button>
-              </form>";
-        echo "</td>";
-        echo "</tr>";
-    }
-} else {
-    echo "<tr><td colspan='10' class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>No se encontraron pedidos para el código de usuario: " . htmlspecialchars($codigo_usuario) . "</td></tr>";
-}
-?>
-
-
-            
+                <?php
+                if (!empty($pedidosUsuario)) {
+                    foreach ($pedidosUsuario as $row) {
+                        echo "<tr class='bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'>";
+                        // Excluir la columna de concepto (índice 5)
+                        for ($i = 0; $i < count($row); $i++) {
+                            if ($i != 5) {
+                                echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>{$row[$i]}</td>";
+                            }
+                        }
+                        // Aquí se añade el formulario para enviar los datos a EditarPedido.php
+                        echo "<td class='px-6 py-4 whitespace-nowrap text-right text-sm font-medium'>
+                            <form action='CompletarPedido.php' method='post'>
+                                <input type='hidden' name='id' value='{$row[0]}'>
+                                <input type='hidden' name='codigo_pedido' value='{$row[1]}'>
+                                <input type='hidden' name='pedido' value='{$row[2]}'>
+                                <input type='hidden' name='descripcion' value='{$row[3]}'>
+                                <input type='hidden' name='estado' value='{$row[4]}'>
+                                <input type='hidden' name='codigo_usuario' value='{$row[6]}'>
+                                <input type='hidden' name='codigo_repartidor' value='{$row[7]}'>
+                                <input type='hidden' name='tipo_pago' value='{$row[8]}'>
+                                <input type='hidden' name='monitoreo' value='{$row[9]}'>
+                                <button type='submit' class='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2'>Completar pedido</button>
+                            </form>
+                           
+                            
+                           
+                        </td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='10' class='text-center px-6 py-4'>No hay pedidos disponibles.</td></tr>";
+                }
+                ?>
             </tbody>
         </table>
     </div>
 </div>
+
 
 <script>
     function searchTable() {
