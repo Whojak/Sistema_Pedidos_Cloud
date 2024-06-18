@@ -32,7 +32,7 @@ $values = $response->getValues();
 $pedidosUsuario = [];
 if (!empty($values)) {
     foreach ($values as $row) {
-        if (isset($row[7]) && $row[7] == $codigo_usuario && (isset($row[4]) && $row[4] == 'Aceptado' || isset($row[4]) && $row[4] == 'Entregado'  ) ) { 
+        if (isset($row[7]) && $row[7] == $codigo_usuario && (isset($row[4]) && $row[4] == 'Entregado'  ) ) { 
             $pedidosUsuario[] = $row; 
         }
     }
