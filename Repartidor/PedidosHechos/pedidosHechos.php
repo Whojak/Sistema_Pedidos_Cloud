@@ -1,10 +1,9 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión
+
 session_start();
 
-// Acceder a la variable de sesión del código de usuario
 $codigo_usuario = $_SESSION['codigo_usuario'];
 
 // Configurar el cliente de Google
@@ -161,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
                 </tr>
             </thead>
             <tbody>
-                <!-- Aquí va tu código PHP para rellenar la tabla -->
+               
                <?php
                if (!empty($pedidosUsuario)) {
     foreach ($pedidosUsuario as $row) {
@@ -169,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
         foreach ($row as $cell) {
             echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>$cell</td>";
         }
-        // Añadir una celda para el botón
+       
         echo "<td class='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white'>";
         echo "<form action='' method='post'>
                 <input type='hidden' name='id' value='{$row[0]}'>
@@ -192,13 +191,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['despedir'])) {
 
 <script>
     function searchTable() {
-        // Obtiene el valor del input de búsqueda y lo convierte a minúsculas para comparación
+        
         let input = document.getElementById("search").value.toLowerCase();
-        // Obtiene la tabla y sus filas
+        
         let table = document.getElementById("pedidoTable");
         let tr = table.getElementsByTagName("tr");
 
-        // Recorre todas las filas de la tabla, excepto la primera (encabezados)
+  
         for (let i = 1; i < tr.length; i++) {
             // Obtiene las celdas que contienen el código de pedido y el estado
             let tdCodigoPedido = tr[i].getElementsByTagName("td")[1];

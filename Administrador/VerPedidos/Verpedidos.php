@@ -119,7 +119,7 @@ $values = $response->getValues();
                 </tr>
             </thead>
             <tbody>
-                <!-- Aquí va tu código PHP para rellenar la tabla -->
+              
                 <?php
                 if ($values) {
                     foreach ($values as $row) {
@@ -138,13 +138,13 @@ $values = $response->getValues();
 
 <script>
     function searchTable() {
-        // Obtiene el valor del input de búsqueda y lo convierte a minúsculas para comparación
+       
         let input = document.getElementById("search").value.toLowerCase();
         // Obtiene la tabla y sus filas
         let table = document.getElementById("pedidoTable");
         let tr = table.getElementsByTagName("tr");
 
-        // Recorre todas las filas de la tabla, excepto la primera (encabezados)
+        
         for (let i = 1; i < tr.length; i++) {
             // Obtiene las celdas que contienen el código de pedido y el estado
             let tdCodigoPedido = tr[i].getElementsByTagName("td")[1];

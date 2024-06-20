@@ -1,9 +1,7 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión
 session_start();
-
 
 $userID = $_SESSION['user_id'];
 

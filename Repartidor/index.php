@@ -1,11 +1,11 @@
 
 <?php
-// Iniciar sesión si aún no se ha iniciado
+
 session_start();
 
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['user'])) {
-    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
+  
     header('Location: index.php');
     exit;
 }
@@ -18,15 +18,13 @@ $userID = $_SESSION['user_id'];
 
 // Verificar si el código de usuario está definido en la sesión
 if (!isset($_SESSION['codigo_usuario'])) {
-    // Manejar el caso en que la variable de sesión no esté definida
     echo "Error: El código de usuario no está definido.";
     exit;
 }
 
-// Acceder a la variable de sesión del código de usuario
 $codigo_usuario = $_SESSION['codigo_usuario'];
 
-// Comprobar si se ha hecho clic en el botón "Volver"
+
 if (isset($_POST['logout'])) {
     // Destruir todas las variables de sesión
     session_unset();

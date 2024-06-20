@@ -1,13 +1,11 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión
+
 session_start();
 
-// Acceder a la variable de sesión del nombre de usuario
 $usuario = $_SESSION['user'];
 
-// Acceder a la variable de sesión del ID de usuario
 $userID = $_SESSION['user_id'];
 
 // Configurar el cliente de Google

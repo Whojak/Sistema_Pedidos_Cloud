@@ -14,9 +14,9 @@ function generarCodigoPedido() {
     return 'PED' . str_pad($random_number, 6, '0', STR_PAD_LEFT);
 }
 
-// Verificar si se ha enviado el formulario
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Capturar los datos del formulario
+    
     $nombre_pedido = $_POST['nombre_pedido'];
     $descripcion = $_POST['descripcion'];
     $tipo_pago = $_POST['tipo_pago'];
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
     <form class="max-w-md mx-auto" method="POST" action="">
     
-      <!-- Campo para Nombre del Pedido -->
+      <!-- Campo para Nombre del Pedido o concepto -->
      <div class="relative z-0 w-full mb-5 group">
     <select name="nombre_pedido" id="nombre_pedido" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" required>
         <option value="" disabled selected hidden></option>

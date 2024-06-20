@@ -1,21 +1,18 @@
 <?php
-// Iniciar sesión si aún no se ha iniciado
+
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
+
 if (!isset($_SESSION['user'])) {
-    // Redirigir al usuario de vuelta al inicio de sesión si no ha iniciado sesión
     header('Location: index.php');
     exit;
 }
 
-// Acceder a la variable de sesión del nombre de usuario
 $usuario = $_SESSION['user'];
 
-// Acceder a la variable de sesión del ID de usuario
 $userID = $_SESSION['user_id'];
 
-// Comprobar si se ha hecho clic en el botón "Volver"
+
 if (isset($_POST['logout'])) {
     // Destruir todas las variables de sesión
     session_unset();

@@ -1,7 +1,7 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión
+
 session_start();
 
 // Configurar el cliente de Google

@@ -29,8 +29,8 @@ $values = $response->getValues();
 $codigo_repartidor_options = [];
 if (!empty($values)) {
     foreach ($values as $row) {
-        if (strpos($row[0], "REP") !== false) { // Comprueba si el código de usuario contiene "REP"
-            $codigo_repartidor_options[] = $row[0]; // Agrega el código de usuario al array de opciones
+        if (strpos($row[0], "REP") !== false) { 
+            $codigo_repartidor_options[] = $row[0]; 
         }
     }
 }

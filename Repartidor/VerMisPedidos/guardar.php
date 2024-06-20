@@ -1,7 +1,7 @@
 <?php
 require_once '../../vendor/autoload.php';
 
-// Iniciar sesión
+
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -29,8 +29,8 @@ $values = $response->getValues();
 $pedidosEspera = [];
 if (!empty($values)) {
     foreach ($values as $row) {
-        if ($row[4] == "Espera") { // Comprueba el estado en la columna E (índice 4)
-            $pedidosEspera[] = $row; // Agrega la fila completa al array de pedidos en espera
+        if ($row[4] == "Espera") {
+            $pedidosEspera[] = $row; 
         }
     }
 }
@@ -115,8 +115,8 @@ if (!empty($values)) {
 
 
 
-<div class="flex justify-center items-center mt-10 px-10"> <!-- Agregado rellenado horizontal -->
-  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white dark:bg-gray-800 p-4"> <!-- Agregado rellenado vertical y fondo blanco -->
+<div class="flex justify-center items-center mt-10 px-10"> 
+  <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white dark:bg-gray-800 p-4"> 
     <table id="pedidoTable" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 mb-8">
       <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
         <tr>
@@ -159,7 +159,7 @@ if (!empty($values)) {
 
 <script>
     function searchTable() {
-        // Obtiene el valor del input de búsqueda y lo convierte a minúsculas para comparación
+        
         let input = document.getElementById("search").value.toLowerCase();
         // Obtiene la tabla y sus filas
         let table = document.getElementById("pedidoTable");

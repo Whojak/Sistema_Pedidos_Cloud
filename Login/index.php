@@ -1,7 +1,7 @@
 <?php
 require_once '../vendor/autoload.php';
 
-// Iniciar sesión
+
 session_start();
 
 // Configurar el cliente de Google
@@ -25,7 +25,7 @@ $range = 'Usuarios!A2:L';
 $response = $service->spreadsheets_values->get($spreadsheetId, $range);
 $values = $response->getValues();
 
-// Verificar si se envió el formulario de inicio de sesión
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $inputUsername = $_POST['username'];
     $inputPassword = $_POST['password'];
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user'] = $username;
                 $_SESSION['role'] = $userRole;
                 $_SESSION['user_id'] = $row[0];
-                $_SESSION['codigo_usuario'] = $codigo_usuario; // Almacenar el código de usuario en la sesión
+                $_SESSION['codigo_usuario'] = $codigo_usuario; 
 
                 // Redirigir según el rol del usuario
                 if ($userRole === 'cliente' || $userRole === 'Cliente') {

@@ -5,7 +5,7 @@ require_once '../../vendor/autoload.php';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Obtener los valores de los campos pasados desde la página "Ver usuarios"
+    
     $id = $_POST['id'];
     $codigo_usuario = $_POST['codigo_usuario'];
     $nombre = $_POST['nombre'];
@@ -45,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $contrasena = $currentData[6]; 
         $token = $currentData[11]; 
     } else {
-        $contrasena = ''; // Valor por defecto si no se encuentra la fila
-        $token = ''; // Valor por defecto si no se encuentra la fila
+        $contrasena = ''; 
+        $token = ''; 
     }
 
     // Crear los datos a actualizar

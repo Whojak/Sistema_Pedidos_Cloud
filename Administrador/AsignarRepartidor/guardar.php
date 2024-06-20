@@ -16,8 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_repartidor = $_POST['id_repartidor'];
     $tipo_pago = $_POST['tipo_pago'];
     $monitoreo = $_POST['monitoreo'];
-
-    // Establecer el estado a "Aceptado"
     $estado = 'Aceptado';
 
     // Sumar 1 al ID para obtener bien el dato
